@@ -26,15 +26,15 @@
         "attempts": [
           "216"
         ],
-        "time": 55.004542
+        "time": 7.160083
       },
       "part2": {
-        "solved": false,
-        "result": null,
+        "solved": true,
+        "result": "308",
         "attempts": [
           "316"
         ],
-        "time": null
+        "time": 13.022958
       }
     },
     {

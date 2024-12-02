@@ -13,17 +13,26 @@ const arraysEqual = (a, b) => {
   return true;
 }
 
+function createAllReadingOptions(arr) {
+  const result = [];
+  for (let i = 0; i < arr.length; i++) {
+    const newArr = [...arr.slice(0, i), ...arr.slice(i + 1)];
+    result.push(newArr);
+  }
+  return result;
+}
+
 const isSafe = (readings) => {
   const clonedReadings = structuredClone(readings);
   const sortedReadings = clonedReadings.sort((a,b) => a - b);
-  // if ascending || descending
-  console.log(sortedReadings);
-  console.log(readings);
-  if (arraysEqual(sortedReadings, readings) || arraysEqual(sortedReadings.reverse(), readings)) {
-    return sequenceInRange(readings);
+  if (!arraysEqual(sortedReadings, readings) && !arraysEqual(sortedReadings.reverse(), readings)) {
+    return false
+  } 
+
+  if (sequenceInRange(readings)) {
+    return true;
   } else {
-    console.log(`Not all ascending or descending`)
-    return false;
+
   }
 }
 
@@ -35,7 +44,6 @@ function sequenceInRange(readings) {
     if (index < readings.length - 1) {
       const difference = Math.abs(parsedValue - readings[index + 1]);
       if (difference < 1 || difference > 3) {
-        console.log(`Not safe, difference ${difference}`)
         isSafe = false;
       } 
     }
@@ -49,21 +57,39 @@ const part1 = (rawInput) => {
 
   reports.map((report) => {
     if (isSafe(report.split(' ').map(i => parseInt(i, 10)))) {
-      // console.log(`Report ${report} is safe`)
       safeReports++;
     } else {
       console.log(`Report ${report} is NOT safe`)
     }
   });
 
-
   return safeReports;
 };
 
 const part2 = (rawInput) => {
-  const input = parseInput(rawInput);
+  const reports = parseInput(rawInput);
+  let safeReports = 0;
 
-  return;
+  reports.map((report) => {
+    if (isSafe(report.split(' ').map(i => parseInt(i, 10)))) {
+      safeReports++;
+    } else {
+      let retrySucceeded = false; 
+      createAllReadingOptions(report.split(' ').map(i => parseInt(i, 10))).forEach((retryReport => {
+        if (isSafe(retryReport.map(i => parseInt(i, 10)))) {
+          retrySucceeded = true;
+        }
+      }));
+      
+      if (retrySucceeded) {
+        safeReports++;
+      } else {
+        console.log(`Report ${report} is NOT safe`)
+      }
+    }
+  });
+
+  return safeReports;
 };
 
 run({
@@ -82,10 +108,34 @@ run({
   },
   part2: {
     tests: [
-      {
-        input: `7 6 4 2 1\n1 2 7 8 9\n9 7 6 2 1\n1 3 2 4 5\n8 6 4 4 1\n1 3 6 7 9`,
-        expected: 4,
-      },
+        {
+          input: `7 6 4 2 1`,
+          expected: 1,
+        },
+        {
+          input: `1 2 7 8 9`,
+          expected: 0,
+        },
+        {
+          input: `9 7 6 2 1`,
+          expected: 0,
+        },
+        {
+          input: `1 3 2 4 5`,
+          expected: 1,
+        },      
+        {
+          input: `8 6 4 4 1`,
+          expected: 1,
+        },
+        {
+          input: `1 3 6 7 9`,
+          expected: 1,
+        },
+        {
+          input: `7 6 4 2 1\n1 2 7 8 9\n9 7 6 2 1\n1 3 2 4 5\n8 6 4 4 1\n1 3 6 7 9`,
+          expected: 4,
+        },
     ],
     solution: part2,
   },
