@@ -30,6 +30,7 @@ function getImpactedRules(rules, values) {
 } 
 
 function checkFailingRule(values, rules) {
+  const failingRules = [];
   for (const rule of rules) {
     const beforeIndex = values.findIndex(a => a === rule.before);
     const afterIndex = values.findIndex(a => a === rule.after);
@@ -39,10 +40,13 @@ function checkFailingRule(values, rules) {
     }
 
     if (beforeIndex > afterIndex) {
-      return rule
+      failingRules.push(rule)
     }
   }
 
+  if (failingRules.length) {
+    return failingRules;
+  } 
   return;
 }
 
@@ -82,18 +86,22 @@ const part2 = (rawInput) => {
   for (const update of input.updates) {
     const rulesToValidate = getImpactedRules(input.rules, update);
     
-    const failingRule = checkFailingRule(update, rulesToValidate)
-    if (failingRule) {
-      toFix.push({update, failingRule});
+    const failingRules = checkFailingRule(update, rulesToValidate)
+    if (failingRules) {
+      console.log(`Failed - ${update} - Rule ${JSON.stringify(failingRules)}`)
+      toFix.push({update, failingRules});
     };
   }
   
   const toPrint = [];
   for (const toFixObject of toFix) {
-    toPrint.push(swapValues(toFixObject.update, toFixObject.failingRule.before, toFixObject.failingRule.after));
+    for (const failingRule of toFixObject.failingRules) {
+      swapValues(toFixObject.update, failingRule.before, failingRule.after);
+    }
+    toPrint.push(toFixObject.update);
   }
   
-  
+  console.log(toPrint);
   return toPrint.map(item => {
     return item[item.length / 2 | 0]
   }).reduce((a,b) => a + b);
