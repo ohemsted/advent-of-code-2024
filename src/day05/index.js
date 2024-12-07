@@ -29,28 +29,32 @@ function getImpactedRules(rules, values) {
   return affectedRules.sort((a, b) => a.before - b.before);
 } 
 
-function checkRules(values, rules) {
-  const valuesCopy = [...values]
-  let breaksRule = false; 
-  valuesCopy.forEach((value, valueIndex) => {
-    rules.forEach(rule => {
-      if (rule.before == value) {
-        if (valuesCopy.splice(valueIndex, valuesCopy.length - 1).includes(rule.after)) {
-          breaksRule = true; 
-        }
-        // does rule.after appear to the left of it
-      }
+function checkFailingRule(values, rules) {
+  for (const rule of rules) {
+    const beforeIndex = values.findIndex(a => a === rule.before);
+    const afterIndex = values.findIndex(a => a === rule.after);
+    
+    if (beforeIndex === -1 || afterIndex === -1) {
+      continue;
+    }
 
-      if (rule.after == value) {
-        valuesCopy.length = valueIndex;
-        if (valuesCopy.includes(rule.before)) {
-          breaksRule = true; 
-        }
-        // do any of rule.before values appear to the right of it, if so return false
-      }
-    });
-  });
-  return !breaksRule;
+    if (beforeIndex > afterIndex) {
+      return rule
+    }
+  }
+
+  return;
+}
+
+function swapValues(values, beforeValue, afterValue) {
+  const beforeIndex = values.indexOf(beforeValue);
+  const afterIndex = values.indexOf(afterValue);
+
+  if (beforeIndex !== -1 && afterIndex !== -1) {
+    [values[beforeIndex], values[afterIndex]] = [values[afterIndex], values[beforeIndex]];
+  }
+
+  return values;
 }
 
 const part1 = (rawInput) => {
@@ -59,24 +63,40 @@ const part1 = (rawInput) => {
 
   for (const update of input.updates) {
     const rulesToValidate = getImpactedRules(input.rules, update);
-    // console.log(rulesToValidate);
-    if (checkRules(update, rulesToValidate)) {
+
+    if (!checkFailingRule(update, rulesToValidate)) {
       console.log(`Passed - ${update}`)
       toPrint.push(update);
     };
   }
 
-  console.log(toPrint.map(item => {
+  return toPrint.map(item => {
     return item[item.length / 2 | 0]
-  }).reduce((a,b) => a + b));
-
-  return;
+  }).reduce((a,b) => a + b);
 };
 
 const part2 = (rawInput) => {
   const input = parseInput(rawInput);
+  const toFix = [];
 
-  return;
+  for (const update of input.updates) {
+    const rulesToValidate = getImpactedRules(input.rules, update);
+    
+    const failingRule = checkFailingRule(update, rulesToValidate)
+    if (failingRule) {
+      toFix.push({update, failingRule});
+    };
+  }
+  
+  const toPrint = [];
+  for (const toFixObject of toFix) {
+    toPrint.push(swapValues(toFixObject.update, toFixObject.failingRule.before, toFixObject.failingRule.after));
+  }
+  
+  
+  return toPrint.map(item => {
+    return item[item.length / 2 | 0]
+  }).reduce((a,b) => a + b);
 };
 
 run({
@@ -91,10 +111,10 @@ run({
   },
   part2: {
     tests: [
-      // {
-      //   input: ``,
-      //   expected: "",
-      // },
+      {
+        input: `47|53\n97|13\n97|61\n97|47\n75|29\n61|13\n75|53\n29|13\n97|29\n53|29\n61|53\n97|53\n61|29\n47|13\n75|47\n97|75\n47|61\n75|61\n47|29\n75|13\n53|13\n\n75,47,61,53,29\n97,61,53,29,13\n75,29,13\n75,97,47,61,53\n61,13,29\n97,13,75,29,47`,
+        expected: 123,
+      },
     ],
     solution: part2,
   },
