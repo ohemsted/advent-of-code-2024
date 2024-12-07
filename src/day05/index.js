@@ -101,7 +101,6 @@ const part2 = (rawInput) => {
     toPrint.push(toFixObject.update);
   }
   
-  console.log(toPrint);
   return toPrint.map(item => {
     return item[item.length / 2 | 0]
   }).reduce((a,b) => a + b);
